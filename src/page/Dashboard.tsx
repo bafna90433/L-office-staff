@@ -1,4 +1,4 @@
-import { Plus, ArrowUpRight, Bell } from 'lucide-react';
+import { Plus, ArrowUpRight, Bell, AlertTriangle } from 'lucide-react';
 import '../styles/Dashboard.css';
 
 interface CashTx {
@@ -52,19 +52,50 @@ export default function Dashboard({
 
       {/* Glowing Notice Banner */}
       {reminders.filter(r => r.status === 'pending').map(rem => (
-        <div key={rem._id} className="glass-panel animate-fade-in notice-banner">
+        <div 
+          key={rem._id} 
+          className="glass-panel animate-fade-in notice-banner" 
+          style={{ 
+            borderLeft: rem.type === 'salary-delay' ? '4px solid #dc2626' : '4px solid var(--accent-color)',
+            background: rem.type === 'salary-delay' ? 'rgba(220, 38, 38, 0.05)' : 'var(--glass-bg)'
+          }}
+        >
           <div>
-            <div className="notice-badge">
-              <Bell size={16} /> Important Notice from Owner
+            <div 
+              className="notice-badge" 
+              style={{ 
+                color: rem.type === 'salary-delay' ? '#dc2626' : 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              {rem.type === 'salary-delay' ? <AlertTriangle size={16} /> : <Bell size={16} />} 
+              {rem.type === 'salary-delay' ? 'Salary Delay Alert & Advance Call' : 'Important Notice from Owner'}
             </div>
-            <p className="notice-text">{rem.message}</p>
-            <p className="notice-date">
-              Target Date: {new Date(rem.targetDate).toLocaleDateString('en-GB')}
+            <p className="notice-text" style={{ fontSize: '1.05rem', fontWeight: 650, margin: '8px 0' }}>{rem.message}</p>
+            <p className="notice-date" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Expected Payout Date: {new Date(rem.targetDate).toLocaleDateString('en-GB')}
             </p>
           </div>
-          <button onClick={() => onAcknowledgeReminder(rem._id)} className="btn btn-success" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
-            OK, Got it
-          </button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
+            {rem.type === 'salary-delay' && (
+              <button 
+                onClick={() => onNavigate('request-advance')} 
+                className="btn btn-primary" 
+                style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              >
+                Request Advance
+              </button>
+            )}
+            <button 
+              onClick={() => onAcknowledgeReminder(rem._id)} 
+              className="btn btn-success" 
+              style={{ padding: '8px 16px', fontSize: '0.85rem', background: rem.type === 'salary-delay' ? '#16a34a' : '' }}
+            >
+              OK, Got it
+            </button>
+          </div>
         </div>
       ))}
 
