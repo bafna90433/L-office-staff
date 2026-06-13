@@ -66,7 +66,8 @@ export default function RequestAdvance({
         onAdvanceSubmitted();
         onNavigate('dashboard');
       } else {
-        showToast('Failed to request advance', 'danger');
+        const errorData = await res.json().catch(() => ({}));
+        showToast(errorData.message || 'Failed to request advance', 'danger');
       }
     } catch (err) {
       console.error(err);
