@@ -19,12 +19,20 @@ export default function LogExpense({
 }: LogExpenseProps) {
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('staff-welfare');
+  const [customCategory, setCustomCategory] = useState('');
   const [expDesc, setExpDesc] = useState('');
   const [expSubmitting, setExpSubmitting] = useState(false);
 
   const handleLogExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!expAmount || !expCategory) return;
+    
+    const finalCategory = expCategory === 'custom' ? customCategory : expCategory;
+    if (expCategory === 'custom' && !finalCategory.trim()) {
+      showToast('Please enter a custom category name', 'warning');
+      return;
+    }
+    
     setExpSubmitting(true);
 
     try {
@@ -37,7 +45,7 @@ export default function LogExpense({
         body: JSON.stringify({
           amount: parseFloat(expAmount),
           date: new Date(),
-          category: expCategory,
+          category: finalCategory,
           description: expDesc
         })
       });
@@ -45,6 +53,7 @@ export default function LogExpense({
       if (res.ok) {
         setExpAmount('');
         setExpDesc('');
+        setCustomCategory('');
         showToast('Expense logged successfully!', 'success');
         onExpenseSubmitted();
         onNavigate('dashboard');
@@ -82,8 +91,23 @@ export default function LogExpense({
               <option value="sir-expenses">Sir Expenses</option>
               <option value="salary-advance">Salary Advance (Self/Direct)</option>
               <option value="miscellaneous">Miscellaneous</option>
+              <option value="custom">Custom (Type your own)</option>
             </select>
           </div>
+
+          {expCategory === 'custom' && (
+            <div className="form-group animate-fade-in">
+              <label className="form-label">Custom Category Name</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="Enter your custom category"
+                value={customCategory}
+                onChange={e => setCustomCategory(e.target.value)}
+                required
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label">Amount Spent (₹)</label>

@@ -31,6 +31,23 @@ export default function RequestAdvance({
   const [advAmount, setAdvAmount] = useState('');
   const [advReason, setAdvReason] = useState('');
   const [advSubmitting, setAdvSubmitting] = useState(false);
+  const [autoApproveLimit, setAutoApproveLimit] = useState(5000);
+
+  // Fetch limit
+  useEffect(() => {
+    if (token) {
+      fetch(`${apiBase}/settings/advance_auto_approval_limit`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.value !== undefined) {
+          setAutoApproveLimit(Number(data.value));
+        }
+      })
+      .catch(err => console.error('Error fetching limit', err));
+    }
+  }, [token, apiBase]);
 
   // Initialize selected labourer
   useEffect(() => {
@@ -60,9 +77,14 @@ export default function RequestAdvance({
       });
 
       if (res.ok) {
+        const data = await res.json();
         setAdvAmount('');
         setAdvReason('');
-        showToast('Advance requested successfully! Awaiting Owner approval.', 'success');
+        if (data.status === 'approved') {
+          showToast(`Advance Auto-Approved! (₹${data.amount} recorded)`, 'success');
+        } else {
+          showToast('Advance requested successfully! Awaiting Owner approval.', 'success');
+        }
         onAdvanceSubmitted();
         onNavigate('dashboard');
       } else {
@@ -81,7 +103,7 @@ export default function RequestAdvance({
     <div className="request-advance-container">
       <div className="request-advance-title-section">
         <h1 className="request-advance-title">Request Labour Salary Advance</h1>
-        <p className="request-advance-subtitle">Request advance wages for a labourer. Submits to Owner for approval.</p>
+        <p className="request-advance-subtitle">Request advance wages for a labourer. Amounts up to ₹{autoApproveLimit} are auto-approved.</p>
       </div>
 
       <div className="glass-panel request-advance-card">
@@ -110,6 +132,15 @@ export default function RequestAdvance({
               onChange={e => setAdvAmount(e.target.value)}
               required
             />
+            {autoApproveLimit > 0 && (
+              <p style={{ fontSize: '0.85rem', color: (parseFloat(advAmount || '0') <= autoApproveLimit) ? 'var(--color-success)' : 'var(--color-warning)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span className="chat-status-dot" style={{ background: (parseFloat(advAmount || '0') <= autoApproveLimit) ? 'var(--color-success)' : 'var(--color-warning)' }}></span>
+                {(parseFloat(advAmount || '0') <= autoApproveLimit) 
+                  ? `Amount is within auto-approval limit (₹${autoApproveLimit}).`
+                  : `Amount exceeds limit (₹${autoApproveLimit}). Will require Owner approval.`
+                }
+              </p>
+            )}
           </div>
 
           <div className="form-group">
@@ -126,7 +157,9 @@ export default function RequestAdvance({
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
             <button type="submit" className="btn btn-primary" style={{ flexGrow: 1 }} disabled={advSubmitting}>
-              {advSubmitting ? <Loader className="spinner" size={16} /> : 'Send Request to Owner'}
+              {advSubmitting ? <Loader className="spinner" size={16} /> : (
+                parseFloat(advAmount || '0') <= autoApproveLimit ? 'Record Auto-Approved Advance' : 'Send Request to Owner'
+              )}
             </button>
             <button type="button" onClick={() => onNavigate('dashboard')} className="btn btn-secondary">
               Cancel

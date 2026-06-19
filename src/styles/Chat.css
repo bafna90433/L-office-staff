@@ -23,12 +23,14 @@
 }
 
 .chat-active-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--glass-border);
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(0, 0, 0, 0.01);
+  gap: 16px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  z-index: 10;
 }
 
 .chat-active-avatar {
@@ -57,7 +59,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: rgba(0, 0, 0, 0.015);
+  background-color: #f0f2f5;
+  background-image: radial-gradient(circle at center, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 .message-bubble-wrapper {
@@ -121,9 +125,8 @@
 }
 
 .chat-footer {
-  padding: 16px;
-  border-top: 1px solid var(--glass-border);
-  background: var(--bg-secondary);
+  padding: 16px 24px;
+  background: #f0f2f5;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -133,10 +136,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--bg-tertiary);
+  background: #ffffff;
   padding: 8px 12px;
-  borderRadius: 8px;
+  border-radius: 8px;
   width: fit-content;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .chat-file-preview-img {
@@ -152,14 +156,41 @@
   align-items: center;
 }
 
+.chat-input-controls .form-input {
+  border-radius: 24px !important;
+  padding: 12px 20px !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+  background: #ffffff !important;
+}
+
+.chat-input-controls .form-input:focus {
+  border: 1px solid var(--accent-primary) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;
+}
+
+.chat-input-controls .btn-primary {
+  border-radius: 50% !important;
+  width: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
+  flex-shrink: 0;
+}
+
 .chat-attach-btn {
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--glass-border);
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  flex-shrink: 0;
 }

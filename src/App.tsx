@@ -69,8 +69,20 @@ interface Task {
   taskType: 'regular' | 'reminder-sir' | 'custom';
   frequency: 'daily' | 'weekly' | 'monthly' | 'one-time';
   status: 'pending' | 'completed';
+  completedBy?: {
+    name: string;
+  };
+  completedAt?: string;
+  description?: string;
+  remarks?: string;
+  nextFollowup?: string;
+  comments: Array<{
+    authorName: string;
+    authorRole: string;
+    text: string;
+    createdAt: string;
+  }>;
   createdAt: string;
-  comments: any[];
 }
 
 export default function App() {
@@ -78,7 +90,15 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
 
   // Router State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'log-expense' | 'request-advance' | 'history' | 'reminders' | 'tasks' | 'chat' | 'profile'>('dashboard');
+  const validTabs = ['dashboard', 'log-expense', 'request-advance', 'history', 'reminders', 'tasks', 'chat', 'profile'] as const;
+  type TabType = typeof validTabs[number];
+  const savedTab = localStorage.getItem('staff_active_tab') as TabType | null;
+  const [activeTab, setActiveTab] = useState<TabType>(savedTab && validTabs.includes(savedTab) ? savedTab : 'dashboard');
+
+  const navigateTo = (tab: TabType) => {
+    localStorage.setItem('staff_active_tab', tab);
+    setActiveTab(tab);
+  };
 
   // Shared Data States
   const [labours, setLabours] = useState<Labour[]>([]);
@@ -167,6 +187,7 @@ export default function App() {
     localStorage.removeItem('staff_token');
     setToken(null);
     setUser(null);
+    localStorage.removeItem('staff_active_tab');
     setActiveTab('dashboard');
   };
 
@@ -300,11 +321,18 @@ export default function App() {
     }
   };
 
-  const handleAcknowledgeReminder = async (id: string) => {
+  const handleAcknowledgeReminder = async (id: string, targetDate?: string) => {
     try {
+      const payload: any = {};
+      if (targetDate) payload.targetDate = targetDate;
+      
       const res = await fetch(`${API_BASE}/reminders/${id}/acknowledge`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         fetchReminders();
@@ -327,7 +355,7 @@ export default function App() {
             advances={advances}
             reminders={reminders}
             cashBalance={cashBalance}
-            onNavigate={setActiveTab}
+            onNavigate={navigateTo}
             onAcknowledgeReminder={handleAcknowledgeReminder}
           />
         );
@@ -336,9 +364,9 @@ export default function App() {
           <LogExpense 
             token={token}
             apiBase={API_BASE}
-            onNavigate={setActiveTab}
-            onExpenseSubmitted={fetchDashboardData}
             showToast={showToast}
+            onNavigate={navigateTo}
+            onExpenseSubmitted={fetchDashboardData}
           />
         );
       case 'request-advance':
@@ -347,7 +375,7 @@ export default function App() {
             token={token}
             apiBase={API_BASE}
             labours={labours}
-            onNavigate={setActiveTab}
+            onNavigate={navigateTo}
             onAdvanceSubmitted={fetchAdvances}
             showToast={showToast}
           />
@@ -359,6 +387,10 @@ export default function App() {
           <Notices 
             reminders={reminders}
             onAcknowledgeReminder={handleAcknowledgeReminder}
+            apiBase={API_BASE}
+            token={token!}
+            showToast={showToast}
+            onRefresh={fetchReminders}
           />
         );
       case 'tasks':
@@ -366,7 +398,6 @@ export default function App() {
           <Tasks 
             tasks={tasks}
             onOpenTaskDetails={setSelectedTask}
-            onCompleteTask={handleCompleteTask}
           />
         );
       case 'chat':
@@ -413,39 +444,39 @@ export default function App() {
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
           <button 
-            onClick={() => setActiveTab('dashboard')} 
+            onClick={() => navigateTo('dashboard')} 
             className={`nav-link btn-secondary ${activeTab === 'dashboard' ? 'active' : ''}`}
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
             <TrendingUp size={18} /> Staff Desk Overview
           </button>
           <button 
-            onClick={() => setActiveTab('log-expense')} 
+            onClick={() => navigateTo('log-expense')} 
             className={`nav-link btn-secondary ${activeTab === 'log-expense' ? 'active' : ''}`}
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
             <Plus size={18} /> Record New Expense
           </button>
           <button 
-            onClick={() => setActiveTab('request-advance')} 
+            onClick={() => navigateTo('request-advance')} 
             className={`nav-link btn-secondary ${activeTab === 'request-advance' ? 'active' : ''}`}
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
             <ArrowUpRight size={18} /> Request Labour Advance
           </button>
           <button 
-            onClick={() => setActiveTab('history')} 
+            onClick={() => navigateTo('history')} 
             className={`nav-link btn-secondary ${activeTab === 'history' ? 'active' : ''}`}
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
             <FileText size={18} /> Transaction History
           </button>
           <button 
-            onClick={() => setActiveTab('reminders')} 
+            onClick={() => navigateTo('reminders')} 
             className={`nav-link btn-secondary ${activeTab === 'reminders' ? 'active' : ''}`}
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
-            <Bell size={18} /> Owner Notices
+            <Bell size={18} /> MD Notices
             {pendingNoticesCount > 0 && (
               <span className="badge badge-warning" style={{ marginLeft: 'auto', padding: '2px 6px' }}>
                 {pendingNoticesCount}
@@ -453,7 +484,7 @@ export default function App() {
             )}
           </button>
           <button 
-            onClick={() => setActiveTab('tasks')} 
+            onClick={() => navigateTo('tasks')} 
             className={`nav-link btn-secondary ${activeTab === 'tasks' ? 'active' : ''}`}
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
@@ -465,7 +496,7 @@ export default function App() {
             )}
           </button>
           <button 
-            onClick={() => setActiveTab('chat')} 
+            onClick={() => navigateTo('chat')} 
             className={`nav-link btn-secondary ${activeTab === 'chat' ? 'active' : ''}`}
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
@@ -476,17 +507,24 @@ export default function App() {
               </span>
             )}
           </button>
-          <button 
-            onClick={() => setActiveTab('profile')} 
-            className={`nav-link btn-secondary ${activeTab === 'profile' ? 'active' : ''}`}
-            style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
-          >
-            <UserIcon size={18} /> My Profile
-          </button>
         </nav>
 
         <div style={{ marginTop: 'auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+          <div 
+            onClick={() => navigateTo('profile')}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              marginBottom: '16px',
+              cursor: 'pointer',
+              padding: '8px',
+              borderRadius: '8px',
+              transition: 'var(--transition-smooth)',
+              border: activeTab === 'profile' ? '1px solid var(--accent-primary)' : '1px solid transparent',
+              background: activeTab === 'profile' ? 'rgba(99, 102, 241, 0.05)' : 'transparent'
+            }}
+          >
             {user?.imageUrl ? (
               <img 
                 src={user.imageUrl} 

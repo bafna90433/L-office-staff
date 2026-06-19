@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Paperclip, Send, Loader } from 'lucide-react';
+import { Paperclip, Send, Loader, Trash2, AlertTriangle } from 'lucide-react';
 import '../styles/Chat.css';
 
 interface ChatProps {
@@ -17,6 +17,7 @@ export default function Chat({ token, user, apiBase, showToast, onUnreadCountCha
   const [chatFile, setChatFile] = useState<File | null>(null);
   const [chatFilePreview, setChatFilePreview] = useState('');
   const [chatSending, setChatSending] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const IMAGEKIT_PUBLIC_KEY = 'public_LB0AyCgim15VO491kDtVm0Fo798=';
@@ -126,6 +127,32 @@ export default function Chat({ token, user, apiBase, showToast, onUnreadCountCha
     }
   };
 
+  const handleClearChat = () => {
+    if (!ownerUser) return;
+    setShowClearConfirm(true);
+  };
+
+  const executeClearChat = async () => {
+    setShowClearConfirm(false);
+    if (!ownerUser) return;
+    
+    try {
+      const res = await fetch(`${apiBase}/messages/${ownerUser._id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        showToast('Chat cleared successfully', 'success');
+        setChatMessages([]);
+      } else {
+        showToast('Failed to clear chat', 'danger');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error clearing chat', 'danger');
+    }
+  };
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -173,12 +200,30 @@ export default function Chat({ token, user, apiBase, showToast, onUnreadCountCha
               ) : (
                 <div className="chat-active-avatar">OW</div>
               )}
-              <div>
+              <div style={{ flexGrow: 1 }}>
                 <div style={{ fontWeight: 700 }}>{ownerUser.name}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span className="chat-status-dot"></span> Online
                 </div>
               </div>
+              <button 
+                onClick={handleClearChat}
+                style={{
+                  background: 'rgba(220, 38, 38, 0.1)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--color-danger)',
+                  padding: '8px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background 0.2s'
+                }}
+                title="Clear Chat"
+              >
+                <Trash2 size={18} />
+              </button>
             </div>
 
             {/* Messages Window */}
@@ -214,9 +259,11 @@ export default function Chat({ token, user, apiBase, showToast, onUnreadCountCha
                 );
               })}
               {chatMessages.length === 0 && (
-                <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: 'var(--text-secondary)', padding: '48px', textAlign: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '2rem' }}>💬</span>
-                  <span>No messages with Owner yet. Start the conversation!</span>
+                <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.8)', padding: '12px 24px', borderRadius: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                    <p style={{ margin: 0, fontWeight: 500 }}>🔒 End-to-End Encrypted</p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem' }}>No messages yet. Send a message to start the conversation.</p>
+                  </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -269,6 +316,35 @@ export default function Chat({ token, user, apiBase, showToast, onUnreadCountCha
           </div>
         )}
       </div>
+
+      {/* Clear Chat Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div className="glass-panel" style={{ background: 'var(--bg-primary)', padding: '32px', borderRadius: '16px', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+            <div style={{ marginBottom: '16px', color: 'var(--color-danger)', display: 'flex', justifyContent: 'center' }}>
+              <AlertTriangle size={48} />
+            </div>
+            <h3 style={{ marginBottom: '12px', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>Clear Chat?</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              Are you sure you want to delete all messages in this chat? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setShowClearConfirm(false)} 
+                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeClearChat} 
+                style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--color-danger)', color: 'white', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Yes, Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -32,7 +32,7 @@ interface DashboardProps {
     activeBalance: number;
   };
   onNavigate: (tab: 'dashboard' | 'log-expense' | 'request-advance' | 'history' | 'reminders' | 'tasks' | 'chat') => void;
-  onAcknowledgeReminder: (id: string) => void;
+  onAcknowledgeReminder: (id: string, targetDate?: string) => void;
 }
 
 export default function Dashboard({
@@ -45,18 +45,38 @@ export default function Dashboard({
 }: DashboardProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <style>{`
+        @keyframes urgentPulse {
+          0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
+          70% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        .urgent-pulse {
+          animation: urgentPulse 2s infinite;
+        }
+        @keyframes blinkDot {
+          0% { opacity: 1; }
+          50% { opacity: 0.3; }
+          100% { opacity: 1; }
+        }
+      `}</style>
       <div className="dashboard-header">
         <h1 className="dashboard-title">Staff Desk Dashboard</h1>
         <p className="dashboard-subtitle">Log daily cash expenses and request advances for active labourers.</p>
       </div>
 
       {/* Glowing Notice Banner */}
-      {reminders.filter(r => r.status === 'pending').map(rem => (
+      {reminders.filter(r => r.status === 'pending').map(rem => {
+        const timeDiff = new Date(rem.targetDate).getTime() - Date.now();
+        const isUrgent = timeDiff <= 10 * 60 * 1000;
+        
+        return (
         <div 
           key={rem._id} 
-          className="glass-panel animate-fade-in notice-banner" 
+          className={`glass-panel animate-fade-in notice-banner ${isUrgent ? 'urgent-pulse' : ''}`} 
           style={{ 
-            borderLeft: rem.type === 'salary-delay' ? '4px solid #dc2626' : '4px solid var(--accent-color)',
+            borderLeft: isUrgent ? '4px solid var(--color-danger)' : (rem.type === 'salary-delay' ? '4px solid #dc2626' : '4px solid var(--accent-color)'),
+            border: isUrgent ? '2px solid var(--color-danger)' : undefined,
             background: rem.type === 'salary-delay' ? 'rgba(220, 38, 38, 0.05)' : 'var(--glass-bg)'
           }}
         >
@@ -71,11 +91,12 @@ export default function Dashboard({
               }}
             >
               {rem.type === 'salary-delay' ? <AlertTriangle size={16} /> : <Bell size={16} />} 
-              {rem.type === 'salary-delay' ? 'Salary Delay Alert & Advance Call' : 'Important Notice from Owner'}
+              {rem.type === 'salary-delay' ? 'Salary Delay Alert & Advance Call' : 'Important Notice from MD'}
             </div>
             <p className="notice-text" style={{ fontSize: '1.05rem', fontWeight: 650, margin: '8px 0' }}>{rem.message}</p>
-            <p className="notice-date" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Expected Payout Date: {new Date(rem.targetDate).toLocaleDateString('en-GB')}
+            <p className="notice-date" style={{ fontSize: '0.8rem', color: isUrgent ? 'var(--color-danger)' : 'var(--text-secondary)', fontWeight: isUrgent ? 600 : 'normal' }}>
+              {isUrgent && <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-danger)', marginRight: '6px', animation: 'blinkDot 1s infinite' }} />}
+              Target: {new Date(rem.targetDate).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
@@ -97,7 +118,7 @@ export default function Dashboard({
             </button>
           </div>
         </div>
-      ))}
+      )})}
 
       {/* Cash Balance Display */}
       <div className="glass-panel petty-cash-card">
@@ -168,7 +189,7 @@ export default function Dashboard({
             {advances.slice(0, 5).map((req) => (
               <div key={req._id} className="advance-item">
                 <div>
-                  <div style={{ fontWeight: 600 }}>{req.labourId.name}</div>
+                  <div style={{ fontWeight: 600 }}>{req.labourId?.name || 'Deleted Employee'}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>₹{req.amount} | {new Date(req.date).toLocaleDateString('en-GB')}</div>
                 </div>
                 <span className={`badge ${
