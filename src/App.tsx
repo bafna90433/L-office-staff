@@ -6,8 +6,7 @@ import {
   ArrowUpRight, 
   FileText, 
   Bell, 
-  MessageSquare,
-  User as UserIcon
+  MessageSquare
 } from 'lucide-react';
 
 // Import Pages
@@ -304,22 +303,7 @@ export default function App() {
     }
   };
 
-  const handleCompleteTask = async (id: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/tasks/${id}/complete`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        fetchTasks();
-        showToast('Task marked completed successfully!', 'success');
-      } else {
-        showToast('Failed to complete task', 'danger');
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+
 
   const handleAcknowledgeReminder = async (id: string, targetDate?: string) => {
     try {
