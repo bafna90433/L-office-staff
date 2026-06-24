@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Calendar, AlertCircle, Plus } from 'lucide-react';
+import { Search, Calendar, AlertCircle, Plus, Check, CheckCheck } from 'lucide-react';
 import '../styles/Tasks.css';
 
 interface Task {
@@ -17,6 +17,8 @@ interface Task {
   nextFollowup?: string;
   comments: any[];
   createdAt: string;
+  seenByOwner?: boolean;
+  seenAt?: string;
 }
 
 interface TasksProps {
@@ -179,8 +181,27 @@ export default function Tasks({ tasks, onOpenTaskDetails, onOpenCreateTask }: Ta
                     {task.status}
                   </span>
                 </div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  Created: {new Date(task.createdAt).toLocaleDateString('en-GB')}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    Created: {new Date(task.createdAt).toLocaleDateString('en-GB')}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {task.seenByOwner ? (
+                      <span 
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#2563eb', fontWeight: 650 }}
+                        title={task.seenAt ? `Seen on ${new Date(task.seenAt).toLocaleDateString('en-GB')} ${new Date(task.seenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Seen by MD'}
+                      >
+                        <CheckCheck size={15} style={{ strokeWidth: 2.5 }} /> Seen by MD
+                      </span>
+                    ) : (
+                      <span 
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#94a3b8' }}
+                        title="Sent to MD (Unread)"
+                      >
+                        <Check size={15} style={{ strokeWidth: 2.5 }} /> Sent
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
