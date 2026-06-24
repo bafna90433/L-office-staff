@@ -31,6 +31,8 @@ interface DashboardProps {
     totalReceived: number;
     totalSpent: number;
     activeBalance: number;
+    onlineBalance?: number;
+    handCashBalance?: number;
   };
   onNavigate: (tab: 'dashboard' | 'log-expense' | 'request-advance' | 'history' | 'reminders' | 'tasks' | 'chat') => void;
   onAcknowledgeReminder: (id: string, targetDate?: string) => void;
@@ -62,7 +64,7 @@ export default function Dashboard({
       reason = parts.slice(1).join(directReasonMarker);
     } else {
       if (txType === 'received') {
-        details = 'Cash Received from MD';
+        details = 'Cash Received from Bafnatoys';
       } else {
         details = category.replace('-', ' ').toUpperCase();
       }
@@ -128,9 +130,19 @@ export default function Dashboard({
           100% { opacity: 1; }
         }
       `}</style>
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Staff Desk Dashboard</h1>
-        <p className="dashboard-subtitle">Log daily cash expenses and request advances for active labourers.</p>
+      <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '8px' }}>
+        <div>
+          <h1 className="dashboard-title" style={{ margin: 0 }}>Staff Desk Dashboard</h1>
+          <p className="dashboard-subtitle" style={{ margin: '4px 0 0 0' }}>Log daily cash expenses and request advances for active labourers.</p>
+        </div>
+        <div className="petty-cash-actions" style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={() => onNavigate('log-expense')} className="btn btn-primary">
+            <Plus size={18} /> Record Cash / Expense
+          </button>
+          <button onClick={() => onNavigate('request-advance')} className="btn btn-secondary">
+            <ArrowUpRight size={18} /> Request Advance
+          </button>
+        </div>
       </div>
 
       {/* Glowing Notice Banner */}
@@ -188,21 +200,107 @@ export default function Dashboard({
         </div>
       )})}
 
-      {/* Cash Balance Display */}
-      <div className="glass-panel petty-cash-card">
-        <div>
-          <h3 className="petty-cash-label">Your Available Petty Cash Balance</h3>
-          <div className="petty-cash-value">
-            ₹{cashBalance.activeBalance.toLocaleString('en-IN')}
+      {/* 3-Column Petty Cash Cards Grid */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+        gap: '24px', 
+        marginBottom: '32px'
+      }}>
+        {/* Card 1: Online Cash */}
+        <div className="glass-panel" style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          textAlign: 'center',
+          gap: '16px', 
+          padding: '32px 24px',
+          border: '1px solid rgba(59, 130, 246, 0.4)'
+        }}>
+          <img 
+            src="/online_bank.png" 
+            alt="Online Bank" 
+            style={{ 
+              width: '100%', 
+              maxWidth: '220px',
+              height: 'auto',
+              aspectRatio: '1 / 1',
+              borderRadius: '20px', 
+              objectFit: 'cover',
+              boxShadow: '0 8px 24px rgba(59, 130, 246, 0.35)'
+            }} 
+          />
+          <div>
+            <h3 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>ONLINE CASH</h3>
+            <div style={{ fontSize: '2.5rem', fontWeight: 850, color: 'var(--text-primary)', marginTop: '8px' }}>
+              ₹{(cashBalance.onlineBalance ?? 0).toLocaleString('en-IN')}
+            </div>
           </div>
         </div>
-        <div className="petty-cash-actions" style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => onNavigate('log-expense')} className="btn btn-primary">
-            <Plus size={18} /> Record Cash / Expense
-          </button>
-          <button onClick={() => onNavigate('request-advance')} className="btn btn-secondary">
-            <ArrowUpRight size={18} /> Request Advance
-          </button>
+
+        {/* Card 2: Hand Cash */}
+        <div className="glass-panel" style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          textAlign: 'center',
+          gap: '16px', 
+          padding: '32px 24px',
+          border: '1px solid rgba(16, 185, 129, 0.4)'
+        }}>
+          <img 
+            src="/hand_cash_drawer.png" 
+            alt="Hand Cash Drawer" 
+            style={{ 
+              width: '100%', 
+              maxWidth: '220px',
+              height: 'auto',
+              aspectRatio: '1 / 1',
+              borderRadius: '20px', 
+              objectFit: 'cover',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)'
+            }} 
+          />
+          <div>
+            <h3 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>HAND CASH</h3>
+            <div style={{ fontSize: '2.5rem', fontWeight: 850, color: 'var(--text-primary)', marginTop: '8px' }}>
+              ₹{(cashBalance.handCashBalance ?? 0).toLocaleString('en-IN')}
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Total Petty Cash */}
+        <div className="glass-panel petty-cash-card" style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          textAlign: 'center',
+          gap: '16px', 
+          padding: '32px 24px',
+          margin: 0
+        }}>
+          <img 
+            src="/total_vault.png" 
+            alt="Total Petty Cash" 
+            style={{ 
+              width: '100%', 
+              maxWidth: '220px',
+              height: 'auto',
+              aspectRatio: '1 / 1',
+              borderRadius: '20px', 
+              objectFit: 'cover',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)'
+            }} 
+          />
+          <div>
+            <h3 className="petty-cash-label" style={{ margin: 0, fontSize: '0.9rem' }}>AVAILABLE TOTAL CASH</h3>
+            <div className="petty-cash-value" style={{ fontSize: '2.5rem', marginTop: '8px' }}>
+              ₹{cashBalance.activeBalance.toLocaleString('en-IN')}
+            </div>
+          </div>
         </div>
       </div>
 

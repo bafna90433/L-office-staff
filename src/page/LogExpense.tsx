@@ -161,9 +161,9 @@ export default function LogExpense({
       </div>
 
       {activeForm === 'inflow' ? (
-        /* Form: Cash Received from MD */
+        /* Form: Cash Received from Bafnatoys */
         <div className="glass-panel log-expense-card">
-          <h3 style={{ marginBottom: '20px', fontSize: '1.25rem', fontWeight: 700 }}>Record Cash Received from MD</h3>
+          <h3 style={{ marginBottom: '20px', fontSize: '1.25rem', fontWeight: 700 }}>Record Cash Received from Bafnatoys</h3>
           <form onSubmit={handleLogReceivedSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div className="form-group">
               <label className="form-label">Payment Mode</label>
@@ -195,7 +195,7 @@ export default function LogExpense({
               <input 
                 type="text" 
                 className="form-input" 
-                placeholder="e.g. 10000 cash given by MD in office, 10000 online UPI from MD"
+                placeholder="e.g. 10000 cash given by Bafnatoys in office, 10000 online UPI from Bafnatoys"
                 value={rcvDesc}
                 onChange={e => setRcvDesc(e.target.value)}
               />

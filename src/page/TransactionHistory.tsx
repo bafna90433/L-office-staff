@@ -43,7 +43,7 @@ export default function TransactionHistory({ transactions }: TransactionHistoryP
       reason = parts.slice(1).join(directReasonMarker);
     } else {
       if (txType === 'received') {
-        mainText = 'Cash Received from MD';
+        mainText = 'Cash Received from Bafnatoys';
       } else {
         mainText = category.replace('-', ' ').toUpperCase();
       }

@@ -131,7 +131,9 @@ export default function App() {
   const [cashBalance, setCashBalance] = useState({
     totalReceived: 0,
     totalSpent: 0,
-    activeBalance: 0
+    activeBalance: 0,
+    onlineBalance: 0,
+    handCashBalance: 0
   });
   const [tasks, setTasks] = useState<Task[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -235,7 +237,9 @@ export default function App() {
         setCashBalance({
           totalReceived: data.totalReceived,
           totalSpent: data.totalSpent,
-          activeBalance: data.activeBalance
+          activeBalance: data.activeBalance,
+          onlineBalance: data.onlineBalance || 0,
+          handCashBalance: data.handCashBalance || 0
         });
       }
 

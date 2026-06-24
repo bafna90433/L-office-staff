@@ -130,7 +130,7 @@ export default function RequestAdvance({
         </h1>
         <p className="request-advance-subtitle">
           {isCompany 
-            ? 'Request cash from MD to cover company operational expenses.' 
+            ? 'Request cash from Bafnatoys to cover company operational expenses.' 
             : `Request advance wages for a labourer. Amounts up to ₹${autoApproveLimit} are auto-approved.`
           }
         </p>
