@@ -226,7 +226,7 @@ export default function TransactionHistory({
       <div className="stats-grid" style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
         <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '16px 20px', borderLeft: '4px solid var(--color-success)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            <span>Total Inflow</span>
+            <span>Total Cash Received</span>
             <ArrowUpRight size={18} style={{ color: 'var(--color-success)' }} />
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-success)' }}>
@@ -237,7 +237,7 @@ export default function TransactionHistory({
 
         <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '16px 20px', borderLeft: '4px solid var(--color-danger)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            <span>Total Outflow</span>
+            <span>Total Expenses</span>
             <ArrowDownRight size={18} style={{ color: 'var(--color-danger)' }} />
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)' }}>
@@ -255,7 +255,7 @@ export default function TransactionHistory({
           background: netFlow >= 0 ? 'rgba(8, 145, 178, 0.02)' : 'rgba(220, 38, 38, 0.02)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            <span>Net Flow / Balance</span>
+            <span>Available Total Cash</span>
             <IndianRupee size={16} style={{ color: netFlow >= 0 ? 'var(--accent-secondary)' : 'var(--color-danger)' }} />
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: netFlow >= 0 ? 'var(--accent-secondary)' : 'var(--color-danger)' }}>
