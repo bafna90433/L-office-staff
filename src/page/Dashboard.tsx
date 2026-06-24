@@ -164,7 +164,7 @@ export default function Dashboard({
             <p className="notice-text" style={{ fontSize: '1.05rem', fontWeight: 650, margin: '8px 0' }}>{rem.message}</p>
             <p className="notice-date" style={{ fontSize: '0.8rem', color: isUrgent ? 'var(--color-danger)' : 'var(--text-secondary)', fontWeight: isUrgent ? 600 : 'normal' }}>
               {isUrgent && <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-danger)', marginRight: '6px', animation: 'blinkDot 1s infinite' }} />}
-              Target: {new Date(rem.targetDate).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}
+              Target: {new Date(rem.targetDate).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short', hour12: true }).toUpperCase()}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexShrink: 0 }}>
