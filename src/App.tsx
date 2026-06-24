@@ -113,6 +113,14 @@ export default function App() {
   const navigateTo = (tab: TabType) => {
     localStorage.setItem('staff_active_tab', tab);
     setActiveTab(tab);
+    if (tab === 'reminders') {
+      fetchReminders();
+    } else if (tab === 'tasks') {
+      fetchTasks();
+    } else if (tab === 'dashboard') {
+      fetchReminders();
+      fetchTasks();
+    }
   };
 
   // Shared Data States
