@@ -71,10 +71,13 @@ export default function Notices({ reminders, onAcknowledgeReminder, apiBase, tok
     if (!newMessage || !newTargetDate) return;
     setSubmitting(true);
     try {
+      const localDate = new Date(newTargetDate);
+      const isoDate = localDate.toISOString();
+
       const res = await fetch(`${apiBase}/reminders/self`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ message: newMessage, targetDate: newTargetDate })
+        body: JSON.stringify({ message: newMessage, targetDate: isoDate })
       });
       if (res.ok) {
         setNewMessage('');
