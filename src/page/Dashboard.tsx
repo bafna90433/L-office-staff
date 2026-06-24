@@ -219,7 +219,7 @@ export default function Dashboard({
           border: '1px solid rgba(59, 130, 246, 0.4)'
         }}>
           <img 
-            src="/online_bank.png" 
+            src="https://ik.imagekit.io/rishii/online_bank.png" 
             alt="Online Bank" 
             style={{ 
               width: '100%', 
@@ -251,7 +251,7 @@ export default function Dashboard({
           border: '1px solid rgba(16, 185, 129, 0.4)'
         }}>
           <img 
-            src="/hand_cash_drawer.png" 
+            src="https://ik.imagekit.io/rishii/hand_cash_drawer.png" 
             alt="Hand Cash Drawer" 
             style={{ 
               width: '100%', 
@@ -283,7 +283,7 @@ export default function Dashboard({
           margin: 0
         }}>
           <img 
-            src="/total_vault.png" 
+            src="https://ik.imagekit.io/rishii/total_vault.png" 
             alt="Total Petty Cash" 
             style={{ 
               width: '100%', 

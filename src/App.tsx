@@ -405,7 +405,15 @@ export default function App() {
           />
         );
       case 'history':
-        return <TransactionHistory transactions={transactions} />;
+        return (
+          <TransactionHistory 
+            transactions={transactions} 
+            token={token}
+            apiBase={API_BASE}
+            onUpdate={fetchDashboardData}
+            showToast={showToast}
+          />
+        );
       case 'reminders':
         return (
           <Notices 
