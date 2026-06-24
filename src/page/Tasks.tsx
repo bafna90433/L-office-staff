@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Calendar, AlertCircle } from 'lucide-react';
+import { Search, Calendar, AlertCircle, Plus } from 'lucide-react';
 import '../styles/Tasks.css';
 
 interface Task {
@@ -22,9 +22,10 @@ interface Task {
 interface TasksProps {
   tasks: Task[];
   onOpenTaskDetails: (task: Task) => void;
+  onOpenCreateTask: () => void;
 }
 
-export default function Tasks({ tasks, onOpenTaskDetails }: TasksProps) {
+export default function Tasks({ tasks, onOpenTaskDetails, onOpenCreateTask }: TasksProps) {
   // Local filter states
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('pending');
   const [typeFilter, setTypeFilter] = useState<'all' | 'regular' | 'reminder-sir' | 'custom'>('all');
@@ -74,9 +75,14 @@ export default function Tasks({ tasks, onOpenTaskDetails }: TasksProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <div className="tasks-header">
-        <h1 className="tasks-title">My Work Desk</h1>
-        <p className="tasks-subtitle">Check off regular operation checklists, review reminders for Sir, and write follow-up notes.</p>
+      <div className="tasks-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 className="tasks-title" style={{ margin: 0 }}>My Work Desk</h1>
+          <p className="tasks-subtitle" style={{ margin: '4px 0 0 0' }}>Check off regular operation checklists, review reminders for Sir, and write follow-up notes.</p>
+        </div>
+        <button className="btn btn-primary" onClick={onOpenCreateTask} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '8px' }}>
+          <Plus size={18} /> New Work / Follow-up
+        </button>
       </div>
 
       {/* Filter controls */}

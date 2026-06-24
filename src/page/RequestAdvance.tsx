@@ -49,12 +49,24 @@ export default function RequestAdvance({
     }
   }, [token, apiBase]);
 
-  // Initialize selected labourer
+  // Sort labours to put "Company Expenses" at the top, followed by others alphabetically
+  const sortedLabours = [...labours].sort((a, b) => {
+    const aIsCompany = a.empCode === 'COMPANY' || a.name === 'Company Expenses';
+    const bIsCompany = b.empCode === 'COMPANY' || b.name === 'Company Expenses';
+    if (aIsCompany) return -1;
+    if (bIsCompany) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  // Initialize selected labourer using sorted list
   useEffect(() => {
-    if (labours.length > 0 && !selectedLabourId) {
-      setSelectedLabourId(labours[0]._id);
+    if (sortedLabours.length > 0 && !selectedLabourId) {
+      setSelectedLabourId(sortedLabours[0]._id);
     }
-  }, [labours]);
+  }, [sortedLabours, selectedLabourId]);
+
+  const selectedLabour = sortedLabours.find(l => l._id === selectedLabourId);
+  const isCompany = selectedLabour?.empCode === 'COMPANY' || selectedLabour?.name === 'Company Expenses';
 
   const handleAdvanceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,15 +93,15 @@ export default function RequestAdvance({
         setAdvAmount('');
         setAdvReason('');
         if (data.status === 'approved') {
-          showToast(`Advance Auto-Approved! (₹${data.amount} recorded)`, 'success');
+          showToast(isCompany ? `Cash request Auto-Approved! (₹${data.amount} recorded)` : `Advance Auto-Approved! (₹${data.amount} recorded)`, 'success');
         } else {
-          showToast('Advance requested successfully! Awaiting Owner approval.', 'success');
+          showToast(isCompany ? 'Cash request sent successfully! Awaiting Owner approval.' : 'Advance requested successfully! Awaiting Owner approval.', 'success');
         }
         onAdvanceSubmitted();
         onNavigate('dashboard');
       } else {
         const errorData = await res.json().catch(() => ({}));
-        showToast(errorData.message || 'Failed to request advance', 'danger');
+        showToast(errorData.message || 'Failed to submit request', 'danger');
       }
     } catch (err) {
       console.error(err);
@@ -102,28 +114,39 @@ export default function RequestAdvance({
   return (
     <div className="request-advance-container">
       <div className="request-advance-title-section">
-        <h1 className="request-advance-title">Request Labour Salary Advance</h1>
-        <p className="request-advance-subtitle">Request advance wages for a labourer. Amounts up to ₹{autoApproveLimit} are auto-approved.</p>
+        <h1 className="request-advance-title">
+          {isCompany ? 'Request Cash for Company Expenses' : 'Request Labour Salary Advance'}
+        </h1>
+        <p className="request-advance-subtitle">
+          {isCompany 
+            ? 'Request cash from MD to cover company operational expenses.' 
+            : `Request advance wages for a labourer. Amounts up to ₹${autoApproveLimit} are auto-approved.`
+          }
+        </p>
       </div>
 
       <div className="glass-panel request-advance-card">
         <form onSubmit={handleAdvanceSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="form-group">
-            <label className="form-label">Select Labourer</label>
+            <label className="form-label">Select Recipient / Purpose</label>
             <select 
               className="form-input"
               value={selectedLabourId}
               onChange={e => setSelectedLabourId(e.target.value)}
               required
             >
-              {labours.map(lab => (
-                <option key={lab._id} value={lab._id}>{lab.name}</option>
+              {sortedLabours.map(lab => (
+                <option key={lab._id} value={lab._id}>
+                  {lab.empCode === 'COMPANY' ? '🏢 Company Expenses (For Office / Operations)' : lab.name}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Advance Amount Requested (₹)</label>
+            <label className="form-label">
+              {isCompany ? 'Amount Requested (₹)' : 'Advance Amount Requested (₹)'}
+            </label>
             <input 
               type="number" 
               className="form-input" 
@@ -144,10 +167,15 @@ export default function RequestAdvance({
           </div>
 
           <div className="form-group">
-            <label className="form-label">Reason / Purpose of Advance</label>
+            <label className="form-label">
+              {isCompany ? 'Reason / Purpose of Cash Request' : 'Reason / Purpose of Advance'}
+            </label>
             <textarea 
               className="form-input" 
-              placeholder="Describe why the labourer needs this advance (e.g., medical treatment, home festival, etc.)"
+              placeholder={isCompany 
+                ? "Describe what company expenses this cash is needed for (e.g., office tea & snacks, petrol for vehicle, transporter payment, emergency repairs, etc.)" 
+                : "Describe why the labourer needs this advance (e.g., medical treatment, home festival, etc.)"
+              }
               value={advReason}
               onChange={e => setAdvReason(e.target.value)}
               style={{ minHeight: '100px', resize: 'vertical' }}
@@ -158,7 +186,9 @@ export default function RequestAdvance({
           <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
             <button type="submit" className="btn btn-primary" style={{ flexGrow: 1 }} disabled={advSubmitting}>
               {advSubmitting ? <Loader className="spinner" size={16} /> : (
-                parseFloat(advAmount || '0') <= autoApproveLimit ? 'Record Auto-Approved Advance' : 'Send Request to Owner'
+                parseFloat(advAmount || '0') <= autoApproveLimit 
+                  ? (isCompany ? 'Record Auto-Approved Cash' : 'Record Auto-Approved Advance')
+                  : 'Send Request to Owner'
               )}
             </button>
             <button type="button" onClick={() => onNavigate('dashboard')} className="btn btn-secondary">

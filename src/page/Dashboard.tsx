@@ -8,6 +8,7 @@ interface CashTx {
   amount: number;
   date: string;
   description: string;
+  paymentMode?: 'handcash' | 'online';
 }
 
 interface AdvanceRequest {
@@ -43,6 +44,73 @@ export default function Dashboard({
   onNavigate,
   onAcknowledgeReminder
 }: DashboardProps) {
+  // Helper to parse description into details and reason
+  const parseDescription = (description: string, category: string, txType: string) => {
+    let details = '';
+    let reason = '';
+
+    const reasonMarker = '. Reason: ';
+    const directReasonMarker = 'Reason: ';
+    
+    if (description.includes(reasonMarker)) {
+      const parts = description.split(reasonMarker);
+      details = parts[0];
+      reason = parts.slice(1).join(reasonMarker);
+    } else if (description.includes(directReasonMarker)) {
+      const parts = description.split(directReasonMarker);
+      details = parts[0];
+      reason = parts.slice(1).join(directReasonMarker);
+    } else {
+      if (txType === 'received') {
+        details = 'Cash Received from MD';
+      } else {
+        details = category.replace('-', ' ').toUpperCase();
+      }
+      reason = description || '--';
+    }
+
+    if (details.endsWith('.')) {
+      details = details.slice(0, -1);
+    }
+
+    return { details, reason };
+  };
+
+  // Helper to render details with styled status badges
+  const renderDetailsCell = (detailsText: string) => {
+    let text = detailsText;
+    let badgeText = '';
+    let badgeClass = '';
+
+    if (detailsText.includes('(Auto-Approved)')) {
+      text = detailsText.replace('(Auto-Approved)', '').trim();
+      badgeText = 'Auto-Approved';
+      badgeClass = 'badge-success';
+    } else if (detailsText.includes('(Approved by Owner)')) {
+      text = detailsText.replace('(Approved by Owner)', '').trim();
+      badgeText = 'MD Approved';
+      badgeClass = 'badge-info';
+    } else if (detailsText.includes('(By Owner)')) {
+      text = detailsText.replace('(By Owner)', '').trim();
+      badgeText = 'Direct Advance';
+      badgeClass = 'badge-warning';
+    }
+
+    text = text.replace(/\s+/g, ' ').trim();
+    if (text.endsWith('.')) text = text.slice(0, -1);
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <span style={{ fontWeight: 600 }}>{text}</span>
+        {badgeText && (
+          <span className={`badge ${badgeClass}`} style={{ fontSize: '0.65rem', padding: '1px 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {badgeText}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       <style>{`
@@ -130,7 +198,7 @@ export default function Dashboard({
         </div>
         <div className="petty-cash-actions" style={{ display: 'flex', gap: '12px' }}>
           <button onClick={() => onNavigate('log-expense')} className="btn btn-primary">
-            <Plus size={18} /> Record Expense
+            <Plus size={18} /> Record Cash / Expense
           </button>
           <button onClick={() => onNavigate('request-advance')} className="btn btn-secondary">
             <ArrowUpRight size={18} /> Request Advance
@@ -150,29 +218,47 @@ export default function Dashboard({
                   <th>Date</th>
                   <th>Details</th>
                   <th>Category</th>
+                  <th>Payment Mode</th>
                   <th>Amount</th>
                 </tr>
               </thead>
               <tbody>
-                {transactions.slice(0, 8).map((tx) => (
-                  <tr key={tx._id}>
-                    <td>{new Date(tx.date).toLocaleDateString('en-GB')}</td>
-                    <td style={{ fontWeight: 500 }}>{tx.description}</td>
-                    <td>
-                      <span className={`badge ${
-                        tx.txType === 'received' ? 'badge-success' : 'badge-info'
-                      }`}>
-                        {tx.txType === 'received' ? 'RECEIVED' : tx.category.replace('-', ' ')}
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: 700, color: tx.txType === 'received' ? 'var(--color-success)' : 'var(--text-primary)' }}>
-                      {tx.txType === 'received' ? '+' : '-'}₹{tx.amount}
-                    </td>
-                  </tr>
-                ))}
+                {transactions.slice(0, 8).map((tx) => {
+                  const { details, reason } = parseDescription(tx.description, tx.category, tx.txType);
+                  return (
+                    <tr key={tx._id}>
+                      <td>{new Date(tx.date).toLocaleDateString('en-GB')}</td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          {renderDetailsCell(details)}
+                          {reason && reason !== '--' && (
+                            <small style={{ color: 'var(--text-secondary)', fontStyle: 'italic', display: 'block', marginTop: '2px' }}>
+                              Reason: {reason}
+                            </small>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`badge ${
+                          tx.txType === 'received' ? 'badge-success' : 'badge-info'
+                        }`}>
+                          {tx.txType === 'received' ? 'RECEIVED' : tx.category.replace('-', ' ')}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: 500 }}>
+                          {tx.paymentMode === 'online' ? '🌐 Online (Bank / UPI)' : '💵 Cash (Handcash)'}
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: 700, color: tx.txType === 'received' ? 'var(--color-success)' : 'var(--text-primary)' }}>
+                        {tx.txType === 'received' ? '+' : '-'}₹{tx.amount}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {transactions.length === 0 && (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
                       No recent cash transactions.
                     </td>
                   </tr>

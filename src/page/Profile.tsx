@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader, Camera } from 'lucide-react';
 import '../styles/Profile.css';
 
@@ -12,6 +12,7 @@ interface User {
   role: string;
   whatsapp?: string;
   imageUrl?: string;
+  upiId?: string;
 }
 
 interface ProfileProps {
@@ -32,9 +33,21 @@ export default function Profile({
   const [name, setName] = useState(user?.name || '');
   const [whatsapp, setWhatsapp] = useState(user?.whatsapp || '');
   const [imageUrl, setImageUrl] = useState(user?.imageUrl || '');
+  const [upiId, setUpiId] = useState(user?.upiId || '');
   const [imagePreview, setImagePreview] = useState(user?.imageUrl || '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [updating, setUpdating] = useState(false);
+
+  // Sync state when user prop is loaded or changed
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setWhatsapp(user.whatsapp || '');
+      setImageUrl(user.imageUrl || '');
+      setUpiId(user.upiId || '');
+      setImagePreview(user.imageUrl || '');
+    }
+  }, [user]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,7 +114,8 @@ export default function Profile({
         body: JSON.stringify({
           name,
           whatsapp,
-          imageUrl: finalImageUrl
+          imageUrl: finalImageUrl,
+          upiId
         })
       });
 
@@ -191,6 +205,17 @@ export default function Profile({
               placeholder="e.g. 919876543210"
               value={whatsapp}
               onChange={e => setWhatsapp(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">UPI ID (for Company Expenses / Advances)</label>
+            <input 
+              type="text" 
+              className="form-input" 
+              placeholder="e.g. deppa@ybl"
+              value={upiId}
+              onChange={e => setUpiId(e.target.value)}
             />
           </div>
 

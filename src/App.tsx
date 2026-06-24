@@ -6,7 +6,8 @@ import {
   ArrowUpRight, 
   FileText, 
   Bell, 
-  MessageSquare
+  MessageSquare,
+  Users
 } from 'lucide-react';
 
 // Import Pages
@@ -19,9 +20,13 @@ import Notices from './page/Notices';
 import Tasks from './page/Tasks';
 import Chat from './page/Chat';
 import TaskDetailModal from './page/TaskDetailModal';
+import CreateTaskModal from './page/CreateTaskModal';
 import Profile from './page/Profile';
+import Labourers from './page/Labourers';
 
-const API_BASE = 'https://l-backend-production-ff32.up.railway.app/api';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://l-backend-production-ff32.up.railway.app/api';
 
 interface User {
   id: string;
@@ -31,6 +36,7 @@ interface User {
   role: string;
   whatsapp?: string;
   imageUrl?: string;
+  upiId?: string;
 }
 
 interface Labour {
@@ -48,6 +54,7 @@ interface CashTx {
   amount: number;
   date: string;
   description: string;
+  paymentMode?: 'handcash' | 'online';
 }
 
 interface AdvanceRequest {
@@ -89,7 +96,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
 
   // Router State
-  const validTabs = ['dashboard', 'log-expense', 'request-advance', 'history', 'reminders', 'tasks', 'chat', 'profile'] as const;
+  const validTabs = ['dashboard', 'log-expense', 'request-advance', 'history', 'reminders', 'tasks', 'chat', 'profile', 'labourers'] as const;
   type TabType = typeof validTabs[number];
   const savedTab = localStorage.getItem('staff_active_tab') as TabType | null;
   const [activeTab, setActiveTab] = useState<TabType>(savedTab && validTabs.includes(savedTab) ? savedTab : 'dashboard');
@@ -114,6 +121,16 @@ export default function App() {
 
   // Selected Task for Details Modal
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  // Create Task Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Confirm Modal State
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   // Toast Notification State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'danger' | 'warning' | 'info' } | null>(null);
@@ -347,7 +364,9 @@ export default function App() {
         return (
           <LogExpense 
             token={token}
+            user={user}
             apiBase={API_BASE}
+            labours={labours}
             showToast={showToast}
             onNavigate={navigateTo}
             onExpenseSubmitted={fetchDashboardData}
@@ -382,6 +401,7 @@ export default function App() {
           <Tasks 
             tasks={tasks}
             onOpenTaskDetails={setSelectedTask}
+            onOpenCreateTask={() => setIsCreateModalOpen(true)}
           />
         );
       case 'chat':
@@ -401,6 +421,18 @@ export default function App() {
             user={user}
             apiBase={API_BASE}
             onProfileUpdate={setUser}
+            showToast={showToast}
+          />
+        );
+      case 'labourers':
+        return (
+          <Labourers 
+            token={token}
+            apiBase={API_BASE}
+            labours={labours}
+            advances={advances as any}
+            fetchLabours={fetchLabours}
+            setConfirmModal={setConfirmModal}
             showToast={showToast}
           />
         );
@@ -439,7 +471,7 @@ export default function App() {
             className={`nav-link btn-secondary ${activeTab === 'log-expense' ? 'active' : ''}`}
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
-            <Plus size={18} /> Record New Expense
+            <Plus size={18} /> Record Cash / Expense
           </button>
           <button 
             onClick={() => navigateTo('request-advance')} 
@@ -447,6 +479,13 @@ export default function App() {
             style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
           >
             <ArrowUpRight size={18} /> Request Labour Advance
+          </button>
+          <button 
+            onClick={() => navigateTo('labourers')} 
+            className={`nav-link btn-secondary ${activeTab === 'labourers' ? 'active' : ''}`}
+            style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <Users size={18} /> Labourers
           </button>
           <button 
             onClick={() => navigateTo('history')} 
@@ -549,6 +588,21 @@ export default function App() {
         />
       )}
 
+      {/* Create Task Modal Overlay */}
+      {isCreateModalOpen && (
+        <CreateTaskModal 
+          token={token}
+          user={user}
+          apiBase={API_BASE}
+          onClose={() => setIsCreateModalOpen(false)}
+          onTaskCreated={() => {
+            fetchTasks();
+            setIsCreateModalOpen(false);
+          }}
+          showToast={showToast}
+        />
+      )}
+
       {/* Toast Notification overlay */}
       {toast && (
         <div className="toast-container">
@@ -558,6 +612,39 @@ export default function App() {
             {toast.type === 'warning' && <span>⚠️</span>}
             {toast.type === 'info' && <span>ℹ️</span>}
             <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal Overlay */}
+      {confirmModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200
+        }}>
+          <div className="glass-panel glass-panel-glow animate-fade-in" style={{ width: '100%', maxWidth: '440px', padding: '32px', borderRadius: '16px', textAlign: 'center' }}>
+            <h3 className="gradient-text" style={{ fontSize: '1.45rem', fontWeight: 800, marginBottom: '16px' }}>{confirmModal.title}</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '28px', lineHeight: '1.6', fontSize: '1.05rem' }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => {
+                  confirmModal.onConfirm();
+                  setConfirmModal(null);
+                }} 
+                className="btn btn-danger" 
+                style={{ flex: 1, padding: '12px' }}
+              >
+                Yes, Confirm
+              </button>
+              <button 
+                onClick={() => setConfirmModal(null)} 
+                className="btn btn-secondary" 
+                style={{ flex: 1, padding: '12px' }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
