@@ -42,7 +42,18 @@ interface Labour {
   name: string;
   whatsapp: string;
   monthlySalary: number;
+  workingHours?: number;
+  shiftStart?: string;
+  shiftEnd?: string;
+  gender?: string;
   imageUrl: string;
+  status: string;
+  employeeType?: 'labourer' | 'staff';
+  department?: string;
+  phonePeNumber?: string;
+  upiId?: string;
+  phonePeQrUrl?: string;
+  empCode?: string;
 }
 
 interface CashTx {
