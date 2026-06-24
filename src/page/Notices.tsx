@@ -69,6 +69,15 @@ export default function Notices({ reminders, onAcknowledgeReminder, apiBase, tok
   const handleAddSelfReminder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage || !newTargetDate) return;
+
+    const target = new Date(newTargetDate);
+    const now = new Date();
+    const minAllowed = new Date(now.getTime() + 60 * 1000);
+    if (target.getTime() < minAllowed.getTime()) {
+      showToast('Target date and time must be at least 1 minute in the future', 'danger');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const localDate = new Date(newTargetDate);
@@ -139,6 +148,15 @@ export default function Notices({ reminders, onAcknowledgeReminder, apiBase, tok
       showToast('Please select a valid date and time', 'danger');
       return;
     }
+
+    const target = new Date(editingDateValue);
+    const now = new Date();
+    const minAllowed = new Date(now.getTime() + 60 * 1000);
+    if (target.getTime() < minAllowed.getTime()) {
+      showToast('Target date and time must be at least 1 minute in the future', 'danger');
+      return;
+    }
+
     setSavingEdit(true);
     try {
       const localDate = new Date(editingDateValue);
@@ -175,6 +193,15 @@ export default function Notices({ reminders, onAcknowledgeReminder, apiBase, tok
       showToast('Please select a valid date and time', 'danger');
       return;
     }
+
+    const target = new Date(editingDateValue);
+    const now = new Date();
+    const minAllowed = new Date(now.getTime() + 60 * 1000);
+    if (target.getTime() < minAllowed.getTime()) {
+      showToast('Target date and time must be at least 1 minute in the future', 'danger');
+      return;
+    }
+
     setSavingEdit(true);
     try {
       const localDate = new Date(editingDateValue);
@@ -328,6 +355,12 @@ export default function Notices({ reminders, onAcknowledgeReminder, apiBase, tok
                 onClick={() => {
                   const val = noticeDateSelections[rem._id] || formatForDateTimeInput(rem.targetDate);
                   const localDate = new Date(val);
+                  const now = new Date();
+                  const minAllowed = new Date(now.getTime() + 60 * 1000);
+                  if (localDate.getTime() < minAllowed.getTime()) {
+                    showToast('Target date and time must be at least 1 minute in the future', 'danger');
+                    return;
+                  }
                   onAcknowledgeReminder(rem._id, localDate.toISOString());
                 }}
                 className="btn btn-success notice-action-btn"
