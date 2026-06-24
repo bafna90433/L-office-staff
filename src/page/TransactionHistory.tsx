@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, ArrowUpRight, ArrowDownRight, IndianRupee, RefreshCw, Pencil, Loader } from 'lucide-react';
+import { Search, ArrowUpRight, ArrowDownRight, IndianRupee, RefreshCw } from 'lucide-react';
 import '../styles/TransactionHistory.css';
 
 interface CashTx {
@@ -14,76 +14,12 @@ interface CashTx {
 
 interface TransactionHistoryProps {
   transactions: CashTx[];
-  token: string | null;
-  apiBase: string;
-  onUpdate: () => void;
-  showToast: (message: string, type?: 'success' | 'danger' | 'warning' | 'info') => void;
 }
 
 export default function TransactionHistory({ 
-  transactions,
-  token,
-  apiBase,
-  onUpdate,
-  showToast
+  transactions
 }: TransactionHistoryProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingTx, setEditingTx] = useState<CashTx | null>(null);
-  const [editAmount, setEditAmount] = useState('');
-  const [editCategory, setEditCategory] = useState('');
-  const [editPaymentMode, setEditPaymentMode] = useState<'handcash' | 'online'>('handcash');
-  const [editDate, setEditDate] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleStartEdit = (tx: CashTx) => {
-    setEditingTx(tx);
-    setEditAmount(tx.amount.toString());
-    setEditCategory(tx.category);
-    setEditPaymentMode(tx.paymentMode || 'handcash');
-    const d = new Date(tx.date);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    setEditDate(`${yyyy}-${mm}-${dd}`);
-    setEditDescription(tx.description || '');
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingTx || !token) return;
-    setIsSubmitting(true);
-    try {
-      const res = await fetch(`${apiBase}/expenses/${editingTx._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          amount: parseFloat(editAmount),
-          category: editingTx.txType === 'expense' ? editCategory : 'received',
-          paymentMode: editPaymentMode,
-          date: new Date(editDate),
-          description: editDescription
-        })
-      });
-
-      if (res.ok) {
-        showToast('Transaction updated successfully!', 'success');
-        setEditingTx(null);
-        onUpdate();
-      } else {
-        const errorData = await res.json();
-        showToast(errorData.message || 'Failed to update transaction', 'danger');
-      }
-    } catch (err) {
-      console.error(err);
-      showToast('Error connecting to server', 'danger');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -352,7 +288,6 @@ export default function TransactionHistory({
                 <th>Details</th>
                 <th>Status</th>
                 <th>Description / Reason</th>
-                <th style={{ textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -383,28 +318,11 @@ export default function TransactionHistory({
                   <td style={{ color: 'var(--text-secondary)', fontStyle: tx.parsedReason === '--' ? 'italic' : 'normal' }}>
                     {tx.parsedReason}
                   </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <button
-                      onClick={() => handleStartEdit(tx)}
-                      className="btn btn-secondary"
-                      style={{ 
-                        padding: '4px 8px', 
-                        fontSize: '0.75rem', 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '4px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(255,255,255,0.1)'
-                      }}
-                    >
-                      <Pencil size={12} /> Edit
-                    </button>
-                  </td>
                 </tr>
               ))}
               {filteredTransactions.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
                     No transactions found matching the selected filters.
                   </td>
                 </tr>
@@ -413,99 +331,6 @@ export default function TransactionHistory({
           </table>
         </div>
       </div>
-
-      {/* EDIT TRANSACTION MODAL */}
-      {editingTx && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
-        }}>
-          <div className="glass-panel glass-panel-glow" style={{ width: '100%', maxWidth: '480px', padding: '32px' }}>
-            <h2 className="gradient-text" style={{ marginBottom: '20px', fontSize: '1.5rem', fontWeight: 700 }}>Edit Transaction</h2>
-            <form onSubmit={handleSaveEdit}>
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Payment Mode</label>
-                <select 
-                  className="form-input"
-                  value={editPaymentMode}
-                  onChange={e => setEditPaymentMode(e.target.value as any)}
-                  required
-                  style={{ width: '100%' }}
-                >
-                  <option value="handcash">💵 Cash (Handcash)</option>
-                  <option value="online">🌐 Online (Bank / UPI)</option>
-                </select>
-              </div>
-
-              {editingTx.txType === 'expense' && (
-                <div className="form-group" style={{ marginBottom: '16px' }}>
-                  <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Category</label>
-                  <select 
-                    className="form-input"
-                    value={editCategory}
-                    onChange={e => setEditCategory(e.target.value)}
-                    required
-                    style={{ width: '100%' }}
-                  >
-                    <option value="staff-welfare">Staff Welfare</option>
-                    <option value="petrol">Petrol / Vehicle Fuel</option>
-                    <option value="porter-vehicle">Porter / Vehicle Transport</option>
-                    <option value="sir-expenses">Sir Expenses</option>
-                    <option value="salary-advance">Salary Advance (Self/Direct)</option>
-                    <option value="company-expenses">Company Expenses</option>
-                    <option value="miscellaneous">Miscellaneous</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Amount (₹)</label>
-                <input 
-                  type="number" 
-                  step="any"
-                  className="form-input" 
-                  value={editAmount}
-                  onChange={e => setEditAmount(e.target.value)}
-                  required
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Date</label>
-                <input 
-                  type="date" 
-                  className="form-input" 
-                  value={editDate}
-                  onChange={e => setEditDate(e.target.value)}
-                  required
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '24px' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Description / Remarks</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  value={editDescription}
-                  onChange={e => setEditDescription(e.target.value)}
-                  style={{ width: '100%' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="submit" className="btn btn-primary" style={{ flexGrow: 1 }} disabled={isSubmitting}>
-                  {isSubmitting ? <Loader className="spinner" size={16} style={{ animation: 'spin 1s linear infinite' }} /> : 'Save Changes'}
-                </button>
-                <button type="button" onClick={() => setEditingTx(null)} className="btn btn-secondary">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

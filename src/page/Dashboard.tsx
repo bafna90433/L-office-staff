@@ -1,4 +1,4 @@
-import { Plus, ArrowUpRight, Bell, AlertTriangle } from 'lucide-react';
+import { Bell, AlertTriangle } from 'lucide-react';
 import '../styles/Dashboard.css';
 
 interface CashTx {
@@ -130,20 +130,7 @@ export default function Dashboard({
           100% { opacity: 1; }
         }
       `}</style>
-      <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '8px' }}>
-        <div>
-          <h1 className="dashboard-title" style={{ margin: 0 }}>Staff Desk Dashboard</h1>
-          <p className="dashboard-subtitle" style={{ margin: '4px 0 0 0' }}>Log daily cash expenses and request advances for active labourers.</p>
-        </div>
-        <div className="petty-cash-actions" style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => onNavigate('log-expense')} className="btn btn-primary">
-            <Plus size={18} /> Record Cash / Expense
-          </button>
-          <button onClick={() => onNavigate('request-advance')} className="btn btn-secondary">
-            <ArrowUpRight size={18} /> Request Advance
-          </button>
-        </div>
-      </div>
+
 
       {/* Glowing Notice Banner */}
       {reminders.filter(r => r.status === 'pending').map(rem => {
@@ -215,7 +202,7 @@ export default function Dashboard({
           justifyContent: 'center',
           textAlign: 'center',
           gap: '16px', 
-          padding: '32px 24px',
+          padding: '24px',
           border: '1px solid rgba(59, 130, 246, 0.4)'
         }}>
           <img 
@@ -223,17 +210,17 @@ export default function Dashboard({
             alt="Online Bank" 
             style={{ 
               width: '100%', 
-              maxWidth: '220px',
+              maxWidth: '120px',
               height: 'auto',
               aspectRatio: '1 / 1',
-              borderRadius: '20px', 
+              borderRadius: '16px', 
               objectFit: 'cover',
-              boxShadow: '0 8px 24px rgba(59, 130, 246, 0.35)'
+              boxShadow: '0 6px 18px rgba(59, 130, 246, 0.25)'
             }} 
           />
           <div>
-            <h3 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>ONLINE CASH</h3>
-            <div style={{ fontSize: '2.5rem', fontWeight: 850, color: 'var(--text-primary)', marginTop: '8px' }}>
+            <h3 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>ONLINE CASH</h3>
+            <div style={{ fontSize: '1.8rem', fontWeight: 850, color: 'var(--text-primary)', marginTop: '4px' }}>
               ₹{(cashBalance.onlineBalance ?? 0).toLocaleString('en-IN')}
             </div>
           </div>
@@ -247,7 +234,7 @@ export default function Dashboard({
           justifyContent: 'center',
           textAlign: 'center',
           gap: '16px', 
-          padding: '32px 24px',
+          padding: '24px',
           border: '1px solid rgba(16, 185, 129, 0.4)'
         }}>
           <img 
@@ -255,17 +242,17 @@ export default function Dashboard({
             alt="Hand Cash Drawer" 
             style={{ 
               width: '100%', 
-              maxWidth: '220px',
+              maxWidth: '120px',
               height: 'auto',
               aspectRatio: '1 / 1',
-              borderRadius: '20px', 
+              borderRadius: '16px', 
               objectFit: 'cover',
-              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)'
+              boxShadow: '0 6px 18px rgba(16, 185, 129, 0.25)'
             }} 
           />
           <div>
-            <h3 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>HAND CASH</h3>
-            <div style={{ fontSize: '2.5rem', fontWeight: 850, color: 'var(--text-primary)', marginTop: '8px' }}>
+            <h3 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>HAND CASH</h3>
+            <div style={{ fontSize: '1.8rem', fontWeight: 850, color: 'var(--text-primary)', marginTop: '4px' }}>
               ₹{(cashBalance.handCashBalance ?? 0).toLocaleString('en-IN')}
             </div>
           </div>
@@ -279,7 +266,7 @@ export default function Dashboard({
           justifyContent: 'center',
           textAlign: 'center',
           gap: '16px', 
-          padding: '32px 24px',
+          padding: '24px',
           margin: 0
         }}>
           <img 
@@ -287,17 +274,17 @@ export default function Dashboard({
             alt="Total Petty Cash" 
             style={{ 
               width: '100%', 
-              maxWidth: '220px',
+              maxWidth: '120px',
               height: 'auto',
               aspectRatio: '1 / 1',
-              borderRadius: '20px', 
+              borderRadius: '16px', 
               objectFit: 'cover',
-              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)'
+              boxShadow: '0 6px 18px rgba(16, 185, 129, 0.25)'
             }} 
           />
           <div>
-            <h3 className="petty-cash-label" style={{ margin: 0, fontSize: '0.9rem' }}>AVAILABLE TOTAL CASH</h3>
-            <div className="petty-cash-value" style={{ fontSize: '2.5rem', marginTop: '8px' }}>
+            <h3 className="petty-cash-label" style={{ margin: 0, fontSize: '0.8rem' }}>AVAILABLE TOTAL CASH</h3>
+            <div className="petty-cash-value" style={{ fontSize: '1.8rem', marginTop: '4px', fontWeight: 850 }}>
               ₹{cashBalance.activeBalance.toLocaleString('en-IN')}
             </div>
           </div>

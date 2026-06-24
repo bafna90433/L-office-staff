@@ -60,3 +60,30 @@
   color: white;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
+
+/* Two column split layout */
+.log-expense-split-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1.8fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.log-expense-form-side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.log-expense-history-side {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+@media (max-width: 1024px) {
+  .log-expense-split-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

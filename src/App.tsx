@@ -340,8 +340,10 @@ export default function App() {
       console.error(err);
     }
   };
-
-
+  const refreshData = () => {
+    fetchDashboardData();
+    fetchAdvances();
+  };
 
   const handleAcknowledgeReminder = async (id: string, targetDate?: string) => {
     try {
@@ -388,9 +390,10 @@ export default function App() {
             user={user}
             apiBase={API_BASE}
             labours={labours}
+            transactions={transactions}
             showToast={showToast}
             onNavigate={navigateTo}
-            onExpenseSubmitted={fetchDashboardData}
+            onExpenseSubmitted={refreshData}
           />
         );
       case 'request-advance':
@@ -399,8 +402,9 @@ export default function App() {
             token={token}
             apiBase={API_BASE}
             labours={labours}
+            transactions={transactions}
             onNavigate={navigateTo}
-            onAdvanceSubmitted={fetchAdvances}
+            onAdvanceSubmitted={refreshData}
             showToast={showToast}
           />
         );
@@ -408,10 +412,6 @@ export default function App() {
         return (
           <TransactionHistory 
             transactions={transactions} 
-            token={token}
-            apiBase={API_BASE}
-            onUpdate={fetchDashboardData}
-            showToast={showToast}
           />
         );
       case 'reminders':
@@ -486,7 +486,6 @@ export default function App() {
           <h2 className="gradient-text" style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>LABOUR PRO</h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Staff Desk</p>
         </div>
-
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
           <button 
             onClick={() => navigateTo('dashboard')} 
@@ -509,6 +508,7 @@ export default function App() {
           >
             <ArrowUpRight size={18} /> Request Labour Advance
           </button>
+
           <button 
             onClick={() => navigateTo('labourers')} 
             className={`nav-link btn-secondary ${activeTab === 'labourers' ? 'active' : ''}`}
