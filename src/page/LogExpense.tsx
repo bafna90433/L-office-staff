@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader, Pencil } from 'lucide-react';
+import { Loader, Pencil, Trash2 } from 'lucide-react';
 import '../styles/LogExpense.css';
 
 interface LogExpenseProps {
@@ -11,6 +11,7 @@ interface LogExpenseProps {
   onNavigate: (tab: 'dashboard' | 'log-expense' | 'request-advance' | 'history' | 'reminders' | 'tasks' | 'chat' | 'profile' | 'labourers') => void;
   onExpenseSubmitted: () => void;
   showToast: (message: string, type?: 'success' | 'danger' | 'warning' | 'info') => void;
+  setConfirmModal?: (modal: { title: string; message: string; onConfirm: () => void } | null) => void;
 }
 
 export default function LogExpense({ 
@@ -21,9 +22,43 @@ export default function LogExpense({
   transactions = [],
   onNavigate, 
   onExpenseSubmitted, 
-  showToast 
+  showToast,
+  setConfirmModal
 }: LogExpenseProps) {
   const [activeForm, setActiveForm] = useState<'inflow' | 'outflow'>('inflow');
+
+  const handleDeleteTransaction = async (id: string) => {
+    const performDelete = async () => {
+      try {
+        const res = await fetch(`${apiBase}/expenses/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          showToast('Transaction deleted successfully!', 'success');
+          onExpenseSubmitted();
+        } else {
+          const data = await res.json();
+          showToast(data.message || 'Failed to delete transaction', 'danger');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Error connecting to server', 'danger');
+      }
+    };
+
+    if (setConfirmModal) {
+      setConfirmModal({
+        title: 'Delete Transaction',
+        message: 'Are you sure you want to delete this transaction? This action cannot be undone.',
+        onConfirm: performDelete
+      });
+    } else if (window.confirm('Are you sure you want to delete this transaction?')) {
+      await performDelete();
+    }
+  };
 
   // Helper to parse description into details and reason
   const parseDescription = (description: string, category: string, txType: string) => {
@@ -94,6 +129,7 @@ export default function LogExpense({
 
   // Editing transaction states & handlers
   const [editingTx, setEditingTx] = useState<any | null>(null);
+  const [editTxType, setEditTxType] = useState<'received' | 'expense'>('received');
   const [editAmount, setEditAmount] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editPaymentMode, setEditPaymentMode] = useState<'handcash' | 'online'>('handcash');
@@ -103,8 +139,9 @@ export default function LogExpense({
 
   const handleStartEdit = (tx: any) => {
     setEditingTx(tx);
+    setEditTxType(tx.txType);
     setEditAmount(tx.amount.toString());
-    setEditCategory(tx.category);
+    setEditCategory(tx.txType === 'received' ? 'staff-welfare' : tx.category);
     setEditPaymentMode(tx.paymentMode || 'handcash');
     const d = new Date(tx.date);
     const yyyy = d.getFullYear();
@@ -126,8 +163,9 @@ export default function LogExpense({
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          txType: editTxType,
           amount: parseFloat(editAmount),
-          category: editingTx.txType === 'expense' ? editCategory : 'received',
+          category: editTxType === 'expense' ? editCategory : 'received',
           paymentMode: editPaymentMode,
           date: new Date(editDate),
           description: editDescription
@@ -513,20 +551,36 @@ export default function LogExpense({
                         {tx.txType === 'received' ? '+' : '-'}₹{tx.amount}
                       </td>
                       <td>
-                        <button
-                          type="button"
-                          onClick={() => handleStartEdit(tx)}
-                          className="btn btn-secondary"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '0.8rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                        >
-                          <Pencil size={12} /> Edit
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(tx)}
+                            className="btn btn-secondary"
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '0.8rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <Pencil size={12} /> Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTransaction(tx._id)}
+                            className="btn btn-danger"
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '0.8rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <Trash2 size={12} /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -555,6 +609,20 @@ export default function LogExpense({
             <h2 className="gradient-text" style={{ marginBottom: '20px', fontSize: '1.5rem', fontWeight: 700 }}>Edit Transaction</h2>
             <form onSubmit={handleSaveEdit}>
               <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Transaction Type</label>
+                <select 
+                  className="form-input"
+                  value={editTxType}
+                  onChange={e => setEditTxType(e.target.value as any)}
+                  required
+                  style={{ width: '100%' }}
+                >
+                  <option value="received">💵 Cash Received (Inflow)</option>
+                  <option value="expense">💸 Record Expense (Outflow)</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Payment Mode</label>
                 <select 
                   className="form-input"
@@ -568,7 +636,7 @@ export default function LogExpense({
                 </select>
               </div>
 
-              {editingTx.txType === 'expense' && (
+              {editTxType === 'expense' && (
                 <div className="form-group" style={{ marginBottom: '16px' }}>
                   <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', fontWeight: 600 }}>Category</label>
                   <select 

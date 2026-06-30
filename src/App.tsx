@@ -394,6 +394,7 @@ export default function App() {
             showToast={showToast}
             onNavigate={navigateTo}
             onExpenseSubmitted={refreshData}
+            setConfirmModal={setConfirmModal}
           />
         );
       case 'request-advance':
